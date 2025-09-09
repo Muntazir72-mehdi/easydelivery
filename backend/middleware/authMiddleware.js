@@ -11,9 +11,16 @@ const authMiddleware = async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secretkey');
     const user = await User.findById(decoded.id).select('-password');
-    if (!user) {
-      return res.status(401).json({ message: 'User not found' });
+    if (!user || user.isBanned) {
+      return res.status(401).json({ message: 'User not found or banned' });
     }
+
+    // Set default role if not present
+    if (!user.role) {
+      user.role = 'Sender';
+      await user.save();
+    }
+
     req.user = user;
     next();
   } catch (error) {

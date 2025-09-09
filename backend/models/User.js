@@ -21,8 +21,18 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['Sender', 'Traveler'],
+    enum: ['Sender', 'Traveler', 'Admin'],
     default: 'Sender',
+  },
+  isBanned: {
+    type: Boolean,
+    default: false,
+  },
+  otp: {
+    type: String,
+  },
+  otpExpires: {
+    type: Date,
   },
   createdAt: {
     type: Date,

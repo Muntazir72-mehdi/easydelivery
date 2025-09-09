@@ -21,7 +21,7 @@ const Register = () => {
     }
     try {
       // Use full backend URL to avoid proxy issues
-      const response = await fetch('http://localhost:5002/api/auth/register', {
+      const response = await fetch('http://localhost:5003/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: fullName, email, password, role }),
@@ -33,7 +33,11 @@ const Register = () => {
       }
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
-      navigate('/');
+      if (role === 'Admin') {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       setError(err.message || 'Registration failed');
     }
@@ -159,6 +163,7 @@ const Register = () => {
             >
               <option value="Sender">Sender</option>
               <option value="Traveler">Traveler</option>
+              <option value="Admin">Admin</option>
             </select>
           </div>
           <button

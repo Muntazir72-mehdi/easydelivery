@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaTruck, FaClock, FaBoxOpen, FaCheckCircle } from 'react-icons/fa';
+import { FaTruck, FaClock, FaBoxOpen, FaCheckCircle, FaGoogle } from 'react-icons/fa';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -8,23 +8,56 @@ const Login = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  useEffect(() => {
+    // Check for Google OAuth success
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    const userParam = urlParams.get('user');
+
+    if (token && userParam) {
+      const userData = JSON.parse(decodeURIComponent(userParam));
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(userData));
+      navigate('/dashboard');
+      return;
+    }
+
+    // Check if user is already logged in
+    const storedUser = localStorage.getItem('user');
+    const storedToken = localStorage.getItem('token');
+    if (storedUser && storedToken) {
+      navigate('/dashboard');
+    }
+  }, []);
+
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
+
     try {
-      const response = await fetch('http://localhost:5002/api/auth/login', {
+      // Check if email ends with admin@ac.bd to differentiate admin login
+      const isAdmin = email.endsWith('admin@ac.bd');
+
+      const response = await fetch('http://localhost:5003/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
+
       const data = await response.json();
       if (!response.ok) {
         setError(data.message || 'Login failed');
         return;
       }
+
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
-      navigate('/dashboard');
+
+      if (isAdmin) {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err) {
       setError(err.message || 'Login failed');
     }
@@ -79,7 +112,7 @@ const Login = () => {
         <h2 className="text-2xl font-bold text-gray-900 mb-2 text-center">Welcome Back</h2>
         <p className="text-gray-600 mb-8 text-center">Log in to your account</p>
         {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleLogin} className="space-y-6">
           <div>
             <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-1">
               Email Address
@@ -115,6 +148,27 @@ const Login = () => {
             Log In
           </button>
         </form>
+
+        {/* Google Login Button */}
+        <div className="mt-6">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">Or continue with</span>
+            </div>
+          </div>
+          <div className="mt-6">
+            <button
+              onClick={() => window.location.href = 'http://localhost:5003/api/auth/google'}
+              className="w-full flex justify-center items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              <FaGoogle className="text-red-500 mr-2" />
+              Sign in with Google
+            </button>
+          </div>
+        </div>
         <p className="mt-6 text-center text-gray-600 text-sm">
           Don't have an account?{' '}
           <Link to="/register" className="text-blue-600 hover:underline font-semibold">

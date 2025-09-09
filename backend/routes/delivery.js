@@ -1,21 +1,22 @@
 const express = require('express');
 const router = express.Router();
 const deliveryController = require('../controllers/deliveryController');
-const authMiddleware = require('../middleware/authMiddleware'); // Assuming you have auth middleware
+const authMiddleware = require('../middleware/authMiddleware');
 
-// Protect all routes with auth middleware
-router.use(authMiddleware);
+router.get('/', authMiddleware, deliveryController.getAll);
+router.post('/', authMiddleware, deliveryController.create);
+router.get('/:id', authMiddleware, deliveryController.getById);
+router.put('/:id', authMiddleware, deliveryController.update);
+router.delete('/:id', authMiddleware, deliveryController.delete);
 
-// Get all delivery requests for logged-in user
-router.get('/', deliveryController.getDeliveryRequests);
+// New route for updating delivery status
+router.patch('/:id/status', authMiddleware, deliveryController.updateStatus);
 
-// Create a new delivery request
-router.post('/', deliveryController.createDeliveryRequest);
+// New routes for history and analytics
+router.get('/history', authMiddleware, deliveryController.getHistory);
+router.get('/analytics', authMiddleware, deliveryController.getAnalytics);
 
-// Update a delivery request by id
-router.put('/:id', deliveryController.updateDeliveryRequest);
-
-// Delete a delivery request by id
-router.delete('/:id', deliveryController.deleteDeliveryRequest);
+// Smart match suggestions
+router.get('/smart-matches', authMiddleware, deliveryController.getSmartMatches);
 
 module.exports = router;
